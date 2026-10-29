@@ -84,7 +84,7 @@ function renderMandate(mandates, policy, decisions) {
   const settled = mine.filter((d) => d.execution && (d.execution.status === "success" || d.execution.status === "pending_onchain_approval")).reverse();
 
   box.replaceChildren(...[
-    h("h1", { class: "mandate-title" }, m.goal),
+    h("h3", { class: "mandate-title" }, m.goal),
     h("p", { class: "mandate-meta" },
       h("span", {}, "мандат ", h("b", {}, m.id)),
       h("span", {}, "действует до ", h("b", {}, new Date(m.expires_at).toLocaleDateString("ru-RU"))),
@@ -345,7 +345,7 @@ async function boot() {
   const sim = health.mode === "sim";
   $("env").textContent = sim
     ? (globalThis.AGENTGUARD_STANDALONE
-      ? "Демо в браузере. AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице, деньги ненастоящие."
+      ? "Демо в браузере: AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице. Деньги ненастоящие, ничего устанавливать не нужно."
       : `Локальный режим: контракт ${health.contract_id} работает в симуляторе`)
     : `Testnet: контракт ${health.contract_id}`;
   if (sim) token = health.dev_owner_token;
