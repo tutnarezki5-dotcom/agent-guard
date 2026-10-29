@@ -1,5 +1,5 @@
 import { Guard, GuardSigner, MemoryStore, authorizationMessage, type GuardStore } from "../packages/guard/src/index.ts";
-import { StaticFactsProvider, type AccountFacts } from "../packages/risk/src/index.ts";
+import { StaticFactsProvider, type AccountFacts, type FactsProvider } from "../packages/risk/src/index.ts";
 import { VaultSimulator } from "../packages/vault-sim/src/index.ts";
 import { InProcessGuardClient, SimExecutor } from "../packages/sdk/src/clients.ts";
 import { nearToYocto, type GuardAuthorization, type Mandate } from "../packages/schema/src/index.ts";
@@ -31,6 +31,7 @@ export interface World {
   client: InProcessGuardClient;
   executor: SimExecutor;
   signer: GuardSigner;
+  facts: FactsProvider;
   mandate: Mandate;
   clock: { now: () => number; advance: (ms: number) => void };
   /** What a compromised AgentGuard could do: sign anything, skipping the Policy Engine. */
@@ -60,7 +61,8 @@ export function createWorld(o: WorldOptions = {}): World {
 
   const signer = o.signer ?? GuardSigner.generate().signer;
   const store = o.store ?? new MemoryStore();
-  const guard = new Guard({ store, facts: new StaticFactsProvider(facts), signer, contractId: ACCOUNTS.vault, clock: () => new Date(now()) });
+  const factsProvider = new StaticFactsProvider(facts);
+  const guard = new Guard({ store, facts: factsProvider, signer, contractId: ACCOUNTS.vault, clock: () => new Date(now()) });
 
   const vault = new VaultSimulator(ACCOUNTS.vault, ACCOUNTS.owner, ACCOUNTS.agent, signer.publicKeyNear, new Set([ACCOUNTS.owner, ACCOUNTS.agent, ACCOUNTS.weatherApi, ACCOUNTS.gpuCloud, ACCOUNTS.fresh, ACCOUNTS.drain]), now);
 
@@ -92,7 +94,7 @@ export function createWorld(o: WorldOptions = {}): World {
     return { ...fields, message, signature: signer.signMessage(message), guard_public_key: signer.publicKeyNear };
   };
 
-  return { guard, store, vault, client: new InProcessGuardClient(guard), executor: new SimExecutor(vault, ACCOUNTS.agent), signer, mandate, clock, compromisedSign };
+  return { guard, store, vault, client: new InProcessGuardClient(guard), executor: new SimExecutor(vault, ACCOUNTS.agent), signer, facts: factsProvider, mandate, clock, compromisedSign };
 }
 
 /** Pages the agent can read in the demo. One of them carries a prompt injection. */
