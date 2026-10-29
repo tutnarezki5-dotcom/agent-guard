@@ -54,12 +54,22 @@ async function api(method, path, body) {
 }
 
 // ---------------------------------------------------------------- mandate
-async function renderMandate() {
-  const [{ mandates }, policy] = await Promise.all([api("GET", "/v1/mandates"), api("GET", "/v1/policy")]);
+const short = (s, n = 10) => (s && s.length > n + 4 ? `${s.slice(0, n)}…` : s);
+
+function figure(k, v, unit, s) {
+  return h("div", { class: "figure" },
+    h("span", { class: "k" }, k),
+    h("span", { class: "v" }, v, unit ? h("small", {}, unit) : null),
+    s ? h("span", { class: "s" }, s) : null);
+}
+
+function renderMandate(mandates, policy, decisions) {
   const box = $("mandate");
   const m = mandates[0];
   $("freeze").setAttribute("aria-pressed", String(policy.frozen));
   $("freeze").textContent = policy.frozen ? "Разморозить выплаты" : "Заморозить выплаты";
+  $("state").className = `state${policy.frozen ? " frozen" : ""}`;
+  $("state").textContent = policy.frozen ? "выплаты заморожены" : "выплаты открыты";
   if (!m) {
     box.replaceChildren(h("p", { class: "empty" }, "Мандатов нет. Создайте мандат через POST /v1/mandates."));
     return;
@@ -68,19 +78,28 @@ async function renderMandate() {
   const spent = BigInt(m.spent_yocto);
   const reserved = BigInt(m.reserved_yocto);
   const left = budget - spent - reserved;
+  const mine = decisions.filter((d) => d.proposal.mandate_id === m.id);
+  const allowed = mine.filter((d) => d.verdict === "allow").length;
+  const blocked = mine.filter((d) => d.verdict === "block").length;
+  const settled = mine.filter((d) => d.execution && (d.execution.status === "success" || d.execution.status === "pending_onchain_approval")).reverse();
+
   box.replaceChildren(...[
-    h("div", { class: "mandate-top" },
-      h("p", { class: "mandate-goal" }, m.goal),
-      h("p", { class: "mandate-meta" }, `Мандат ${m.id}, до ${new Date(m.expires_at).toLocaleDateString("ru-RU")}, не больше ${near(m.per_tx_max_yocto)} NEAR за раз`)),
-    h("div", { class: "meter", role: "img", "aria-label": `Потрачено ${near(spent)} из ${near(budget)} NEAR` },
-      h("span", { class: "spent", style: `width:${pct(spent, budget)}%` }),
-      h("span", { class: "reserved", style: `width:${pct(reserved, budget)}%` })),
-    h("div", { class: "legend" },
-      h("span", {}, "Потрачено ", h("b", {}, `${near(spent)} NEAR`)),
-      h("span", {}, "В резерве ", h("b", {}, `${near(reserved)} NEAR`)),
-      h("span", {}, "Осталось ", h("b", {}, `${near(left > 0n ? left : 0n)} из ${near(budget)} NEAR`)),
-      m.vault_remaining_yocto !== null ? h("span", {}, "Контракт видит остаток ", h("b", {}, `${near(m.vault_remaining_yocto)} NEAR`)) : null,
-      h("span", {}, `Получатели: ${m.allowed_receivers.join(", ")}`)),
+    h("h1", { class: "mandate-title" }, m.goal),
+    h("p", { class: "mandate-meta" },
+      h("span", {}, "мандат ", h("b", {}, m.id)),
+      h("span", {}, "действует до ", h("b", {}, new Date(m.expires_at).toLocaleDateString("ru-RU"))),
+      h("span", {}, "не больше ", h("b", {}, `${near(m.per_tx_max_yocto)} NEAR`), " за платёж"),
+      h("span", {}, "получатели ", h("b", {}, m.allowed_receivers.join(", ")))),
+    h("div", { class: "figures" },
+      figure("Потрачено", near(spent), "NEAR", `из ${near(budget)} NEAR бюджета`),
+      figure("В резерве", near(reserved), "NEAR", "подписи выданы, не исполнены"),
+      figure("Осталось", near(left > 0n ? left : 0n), "NEAR", m.vault_remaining_yocto !== null ? `контракт видит ${near(m.vault_remaining_yocto)} NEAR` : null),
+      figure("Решений", String(mine.length), null, [`разрешено ${allowed}, `, blocked ? h("b", {}, `заблокировано ${blocked}`) : "заблокировано 0"])),
+    h("div", { class: "budget" },
+      h("div", { class: "track", role: "img", "aria-label": `Потрачено ${near(spent)} из ${near(budget)} NEAR, в резерве ${near(reserved)}` },
+        settled.map((d) => h("span", { class: "seg", style: `width:${pct(d.proposal.amount_yocto, budget)}%`, title: `${near(d.proposal.amount_yocto)} NEAR для ${d.proposal.receiver}` })),
+        reserved > 0n ? h("span", { class: "res", style: `width:${pct(reserved, budget)}%` }) : null),
+      h("div", { class: "scale", "aria-hidden": "true" }, h("span", {}, "0"), h("span", {}, `${near(budget / 2n)}`), h("span", {}, `${near(budget)} NEAR`))),
     policy.frozen ? h("p", { class: "frozen-banner" }, "Все выплаты заморожены. Ни AgentGuard, ни контракт не пропустят ни одного платежа.") : null,
   ].filter(Boolean));
 }
@@ -94,7 +113,7 @@ function outcomeLine(d) {
   if (d.execution) {
     const ok = d.execution.status === "success";
     const text = ok
-      ? `Переведено, транзакция ${d.execution.tx_hash}`
+      ? `Переведено, транзакция ${short(d.execution.tx_hash, 14)}`
       : d.execution.status === "pending_onchain_approval"
         ? "Контракт ждёт одобрения владельца"
         : `Контракт отказал: ${d.execution.error}`;
@@ -130,10 +149,10 @@ async function renderDetail(d, holder) {
   holder.replaceChildren(
     h("table", { class: "trace" },
       h("tbody", {}, full.rule_hits.map((hit) =>
-        h("tr", {},
+        h("tr", { class: hit.ok ? "" : "failed" },
           h("td", { class: `mark ${hit.ok ? "ok" : `fail-${hit.severity}`}`, "aria-label": hit.ok ? "выполнено" : "нарушено" }, mark(hit)),
           h("td", { class: "rule" }, hit.rule),
-          h("td", {}, hit.detail))))),
+          h("td", { class: "txt" }, hit.detail))))),
     h("dl", { class: "facts" },
       h("dt", {}, "Риск получателя"), h("dd", {}, `${full.input.risk.score}/100: ${full.input.risk.signals.filter((s) => s.points !== 0).map((s) => s.detail).join("; ") || "сигналов риска нет"}`),
       h("dt", {}, "Адрес взят из"), h("dd", {}, { mandate: "мандата", user: "задачи владельца", tool_output: "ответа внешнего инструмента", model: "текста модели" }[full.input.proposal.provenance] ?? full.input.proposal.provenance),
@@ -144,11 +163,10 @@ async function renderDetail(d, holder) {
   );
 }
 
-async function renderJournal() {
-  const { decisions } = await api("GET", "/v1/decisions");
+function renderJournal(decisions) {
   $("rows-empty").hidden = decisions.length > 0;
   const rows = decisions.map((d) => {
-    const top = d.reasons.find(() => d.verdict !== "allow");
+    const top = d.verdict !== "allow" ? d.reasons[0] : null;
     const holder = h("div", { class: "detail" });
     const isOpen = expanded.has(d.decision_id);
     holder.hidden = !isOpen;
@@ -164,12 +182,12 @@ async function renderJournal() {
         if (open) await renderDetail(d, holder).catch((e) => toast(e.message));
       },
     },
+      h("span", { class: "when" }, time(d.created_at)),
       h("span", { class: `verdict ${d.verdict}` }, VERDICT[d.verdict]),
       h("span", { class: "what" }, h("strong", {}, `${near(d.proposal.amount_yocto)} NEAR`), h("span", { class: "to" }, ` для ${d.proposal.receiver}`)),
-      h("span", { class: "when" }, time(d.created_at)),
+      h("span", { class: "pips", "aria-hidden": "true" }, d.rule_hits.map((hit) => h("span", { class: pipClass(hit), title: hit.rule }))),
       top ? h("span", { class: "reason" }, top) : null,
-      outcomeLine(d),
-      h("span", { class: "pips", "aria-hidden": "true" }, d.rule_hits.map((hit) => h("span", { class: pipClass(hit), title: hit.rule }))));
+      outcomeLine(d));
     const li = h("li", { class: `row${seen.has(d.decision_id) ? "" : " new"}`, "data-verdict": d.verdict }, btn, holder);
     if (isOpen) renderDetail(d, holder).catch(() => {});
     return li;
@@ -194,7 +212,7 @@ async function renderApprovals() {
       refresh();
     };
     return h("li", { class: "approval" },
-      h("p", {}, h("strong", {}, `${near(d.proposal.amount_yocto)} NEAR`), ` для ${d.proposal.receiver}`),
+      h("p", { class: "amt" }, `${near(d.proposal.amount_yocto)} NEAR `, h("span", {}, `для ${d.proposal.receiver}`)),
       h("p", { class: "why" }, d.reasons.join(". ")),
       h("div", { class: "btns" },
         h("button", { class: "btn btn-approve", type: "button", onclick: decide(true) }, "Одобрить"),
@@ -217,7 +235,7 @@ async function renderVault() {
       h("dt", {}, "Статус"), h("dd", {}, v.frozen ? "Заморожен" : "Работает"),
       m ? [h("dt", {}, "Бюджет мандата"), h("dd", {}, `использовано ${near(m.committed)} из ${near(m.budget)} NEAR`)] : null),
     h("ul", { class: "vault-events", "aria-label": "События контракта" },
-      v.events.slice(-8).reverse().map((e) => h("li", {}, `${new Date(e.at_ms).toLocaleTimeString("ru-RU")} ${e.event}${e.data.amount ? ` ${near(e.data.amount)} NEAR` : ""}`))),
+      v.events.slice(-8).reverse().map((e) => h("li", {}, `${new Date(e.at_ms).toLocaleTimeString("ru-RU")}  `, h("span", { class: "ev" }, e.event), e.data.amount ? `  ${near(e.data.amount)} NEAR` : ""))),
   );
 }
 
@@ -307,7 +325,13 @@ let pending = null;
 function refresh() {
   clearTimeout(pending);
   pending = setTimeout(() => {
-    Promise.all([renderMandate(), renderJournal(), renderApprovals(), renderVault()]).catch((e) => toast(e.message));
+    Promise.all([api("GET", "/v1/mandates"), api("GET", "/v1/policy"), api("GET", "/v1/decisions")])
+      .then(([{ mandates }, policy, { decisions }]) => {
+        renderMandate(mandates, policy, decisions);
+        renderJournal(decisions);
+      })
+      .then(() => Promise.all([renderApprovals(), renderVault()]))
+      .catch((e) => toast(e.message));
   }, 120);
 }
 
@@ -321,7 +345,7 @@ async function boot() {
   const sim = health.mode === "sim";
   $("env").textContent = sim
     ? (globalThis.AGENTGUARD_STANDALONE
-      ? "Демо в браузере: AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице. Деньги ненастоящие."
+      ? "Демо в браузере. AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице, деньги ненастоящие."
       : `Локальный режим: контракт ${health.contract_id} работает в симуляторе`)
     : `Testnet: контракт ${health.contract_id}`;
   if (sim) token = health.dev_owner_token;

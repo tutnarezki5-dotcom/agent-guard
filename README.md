@@ -36,7 +36,7 @@ Requires Node.js 22+ and pnpm.
 4. `pnpm dev`, then open http://localhost:8787 — **see** the operator dashboard: the mandate's budget meter, an empty journal, the 12 scenarios on the right.
 5. In "Сценарии проверки" (scenarios), click **Запустить** (Run) next to scenario 7 "Prompt-injection в ответе поставщика" — **see** a red row "Заблокировано" (blocked) for 5 NEAR to `drain.testnet`. Click the row — **see** every rule with ✓/✕, the risk signals, "Адрес взят из: ответа внешнего инструмента" (address taken from a tool output), and the injected text under "Слова агента" marked "не влияют на решение" (does not affect the decision).
 6. In that row, click **Повторить проверку** (re-run check) — **see** "Проверка повторена: тот же вердикт, те же правила, тот же хеш входа" (same verdict, same rules, same input hash).
-7. Click **Запустить** next to scenario 4 — **see** three green rows "Разрешено" and one red row; the budget meter shows "Потрачено 2.4 NEAR" of 3.
+7. Click **Запустить** next to scenario 4 — **see** three green rows "Разрешено" and one red row; the "Потрачено" (spent) figure shows 2.4 NEAR of the 3 NEAR budget, drawn as three segments on the budget bar.
 8. Click **Заморозить выплаты** (freeze payments) at the top right, then **Оплатить тариф Basic** under "Агент" — **see** a red row whose only failed rule is `policy.not_frozen`, and the banner "Все выплаты заморожены".
 9. `pnpm test:contract` (needs Rust) — **see** 14 tests of the vault rules pass, including the TypeScript↔Rust signature-message vectors.
 
