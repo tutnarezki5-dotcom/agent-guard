@@ -1,0 +1,8 @@
+{
+  "name": "@agentguard/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AgentGuard HTTP API and dashboard server",
+  "license": "MIT"
+}

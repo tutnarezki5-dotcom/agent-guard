@@ -1,0 +1,8 @@
+{
+  "name": "@agentguard/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tool-calling agent that pays only through AgentGuard",
+  "license": "MIT"
+}

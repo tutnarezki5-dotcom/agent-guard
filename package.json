@@ -14,12 +14,14 @@
     "test:contract": "cargo test --manifest-path contracts/vault-core/Cargo.toml",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "demo": "tsx attacks/run.ts",
-    "dev": "tsx apps/api/src/server.ts",
-    "agent": "tsx apps/agent/src/cli.ts",
-    "replay": "tsx apps/api/src/replay-cli.ts",
+    "dev": "tsx --env-file-if-exists=.env apps/api/src/server.ts",
+    "agent": "tsx --env-file-if-exists=.env apps/agent/src/cli.ts",
+    "replay": "tsx --env-file-if-exists=.env apps/api/src/replay-cli.ts",
     "keys:guard": "tsx scripts/gen-guard-key.ts",
     "setup:testnet": "bash scripts/setup-testnet.sh",
-    "attack:fc-transfer": "tsx scripts/attack-fc-transfer.ts"
+    "attack:fc-transfer": "tsx --env-file-if-exists=.env scripts/attack-fc-transfer.ts",
+    "vectors": "tsx scripts/gen-test-vectors.ts",
+    "check": "pnpm typecheck && pnpm test && pnpm demo && pnpm test:contract"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
