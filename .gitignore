@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+data/
+dist/
+target/
+*.wasm
+!contracts/vault/res/.gitkeep
+.DS_Store
+*.log
+keys/
