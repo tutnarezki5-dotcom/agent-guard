@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, toHex } from "../../guard/src/bytes.ts";
 import { authorizationMessage, verifyMessage } from "../../guard/src/signer.ts";
 
 /**
@@ -178,7 +178,7 @@ export class VaultSimulator {
 
   /** Transfer + callback, as in the contract: a failed transfer releases the budget. */
   private transfer(mandateId: string, receiver: string, amount: bigint): PaymentOutcome {
-    const tx_hash = `sim-${randomBytes(16).toString("hex")}`;
+    const tx_hash = `sim-${toHex(randomBytes(16))}`;
     if (!this.existingAccounts.has(receiver)) {
       this.release(mandateId, amount);
       this.emit("transfer_failed", { mandate_id: mandateId, amount: amount.toString() });

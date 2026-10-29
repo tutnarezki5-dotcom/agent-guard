@@ -20,7 +20,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #12171f;
     --panel: #1a212c;
     --ink: #e6eaf0;
@@ -38,6 +38,25 @@
     --focus: #7aa2ff;
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #12171f;
+  --panel: #1a212c;
+  --ink: #e6eaf0;
+  --ink-2: #b2bccb;
+  --ink-3: #808b9c;
+  --line: #2c3542;
+  --allow: #5cc092;
+  --allow-bg: #173327;
+  --warn: #e2a64a;
+  --warn-bg: #3a2c12;
+  --block: #ef6b72;
+  --block-bg: #3d1b1e;
+  --info: #8ea2c0;
+  --pip-ok: #364152;
+  --focus: #7aa2ff;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -65,7 +84,7 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   justify-content: space-between;
   align-items: flex-end;
   gap: 24px;
-  padding: 28px clamp(16px, 4vw, 48px) 20px;
+  padding: 28px max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px)) 20px max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
 }
 .brand h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
 .sub { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
@@ -87,14 +106,14 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .btn:hover { border-color: var(--ink-3); }
 .btn:disabled { opacity: 0.55; cursor: progress; }
 .btn-quiet { background: transparent; }
-.btn-approve { background: var(--allow); border-color: var(--allow); color: #fff; }
+.btn-approve { background: var(--allow); border-color: var(--allow); color: var(--panel); }
 .btn-reject { color: var(--block); }
 .btn-freeze { border-color: var(--block); color: var(--block); }
-.btn-freeze[aria-pressed="true"] { background: var(--block); color: #fff; }
+.btn-freeze[aria-pressed="true"] { background: var(--block); color: var(--panel); }
 
 /* ---------- Mandate meter: the budget, as the vault sees it ---------- */
 .mandate {
-  margin: 0 clamp(16px, 4vw, 48px);
+  margin: 0 max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px)) 0 max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
   padding: 20px 24px 22px;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -116,7 +135,7 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 28px;
-  padding: 28px clamp(16px, 4vw, 48px) 64px;
+  padding: 28px max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px)) 64px max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
   align-items: start;
 }
 .side { display: grid; gap: 30px; }
@@ -217,7 +236,7 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .vault-facts dd { margin: 0; overflow-wrap: anywhere; }
 .vault-events { list-style: none; margin: 8px 0 0; padding: 0; font-size: 12px; color: var(--ink-2); display: grid; gap: 2px; max-height: 160px; overflow: auto; }
 
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 6px; font-size: 14px; max-width: min(560px, calc(100vw - 32px)); }
+.toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 6px; font-size: 14px; max-width: min(560px, calc(100vw - 32px)); }
 
 @media (prefers-reduced-motion: reduce) {
   .meter span { transition: none; }
@@ -226,3 +245,12 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .row.new { animation: arrive 900ms ease-out; }
 @keyframes arrive { from { background: var(--paper); } to { background: var(--panel); } }
 .reason, .outcome { display: block; }
+
+/* Grid columns must be allowed to shrink below their content (long rule ids, hashes). */
+.journal, .side, .row, .detail { min-width: 0; }
+.detail { overflow-x: auto; }
+@media (max-width: 640px) {
+  .trace .rule { white-space: normal; overflow-wrap: anywhere; padding-right: 8px; }
+  .facts { grid-template-columns: 1fr; }
+  .facts dd { margin-bottom: 6px; }
+}

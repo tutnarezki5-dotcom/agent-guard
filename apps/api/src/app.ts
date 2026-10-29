@@ -1,5 +1,4 @@
 import { EventEmitter } from "node:events";
-import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -50,16 +49,23 @@ function send(res: ServerResponse, status: number, body: unknown) {
 }
 
 async function readBody(req: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = [];
+  const chunks: Uint8Array[] = [];
   let size = 0;
-  for await (const c of req) {
-    size += (c as Buffer).length;
+  for await (const c of req as AsyncIterable<Uint8Array | string>) {
+    const bytes = typeof c === "string" ? new TextEncoder().encode(c) : c;
+    size += bytes.length;
     if (size > 64 * 1024) throw new HttpError(413, "body too large");
-    chunks.push(c as Buffer);
+    chunks.push(bytes);
   }
   if (!chunks.length) return {};
+  const all = new Uint8Array(size);
+  let off = 0;
+  for (const c of chunks) {
+    all.set(c, off);
+    off += c.length;
+  }
   try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    return JSON.parse(new TextDecoder().decode(all));
   } catch {
     throw new HttpError(400, "body is not valid JSON");
   }
@@ -298,7 +304,7 @@ export function createApp(ctx: AppContext) {
             [{ name: "finish", arguments: { summary: "Оплачен тариф Basic" } }],
           ]);
         }
-        const id = `run_${randomUUID()}`;
+        const id = `run_${globalThis.crypto.randomUUID()}`;
         const entry = { status: "running" as "running" | "done" | "error", log: [] as string[], result: undefined as unknown, error: undefined as string | undefined };
         runs.set(id, entry);
         void runAgent({ task, mandate, model, guard: c.client, executor: c.executor, web: demoWeb, log: (l) => entry.log.push(l) })

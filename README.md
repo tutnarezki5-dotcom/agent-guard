@@ -18,13 +18,21 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 - **Replayable decisions.** Every decision stores its full input snapshot and SHA-256. `replay` re-runs the engine and must reproduce the verdict, every rule result and the hash.
 - **Human in the loop.** Payments above the threshold or to medium-risk receivers wait for the owner. One switch freezes AgentGuard and the vault together.
 
+## Live demo
+
+**https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et** — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. Click **Прогнать все двенадцать** (run all twelve) on the right — **see** "12 из 12 сценариев прошли как ожидалось" (12 of 12 passed as expected).
+
+Build it yourself: `pnpm build:standalone` → `dist/standalone/agentguard.html` (open the file directly). In that build, Node's OpenSSL ed25519/SHA are swapped for pure-TypeScript implementations that `packages/guard/test/crypto.test.ts` checks byte for byte against node:crypto and the RFC 8032 vector.
+
+Self-hosted server on a free tier: `render.yaml` deploys the simulator to Render (Dashboard → New → Blueprint → this repo) at `https://<name>.onrender.com`. It is a shared sandbox: all visitors see the same state.
+
 ## Try it in 2 minutes (no blockchain, no keys)
 
 Requires Node.js 22+ and pnpm.
 
 1. `pnpm install`
 2. `pnpm demo` — **see** a table of 12 attack and safety scenarios, each with the expected outcome, the actual outcome, the layer that stopped it, and `12/12 PASS` at the end. Add `--verbose` to see every rule and every replay check.
-3. `pnpm test` — **see** 49 TypeScript tests pass (Policy Engine, risk, guard, API, scenarios).
+3. `pnpm test` — **see** 52 TypeScript tests pass (Policy Engine, risk, guard, crypto cross-checks, API, scenarios).
 4. `pnpm dev`, then open http://localhost:8787 — **see** the operator dashboard: the mandate's budget meter, an empty journal, the 12 scenarios on the right.
 5. In "Сценарии проверки" (scenarios), click **Запустить** (Run) next to scenario 7 "Prompt-injection в ответе поставщика" — **see** a red row "Заблокировано" (blocked) for 5 NEAR to `drain.testnet`. Click the row — **see** every rule with ✓/✕, the risk signals, "Адрес взят из: ответа внешнего инструмента" (address taken from a tool output), and the injected text under "Слова агента" marked "не влияют на решение" (does not affect the decision).
 6. In that row, click **Повторить проверку** (re-run check) — **see** "Проверка повторена: тот же вердикт, те же правила, тот же хеш входа" (same verdict, same rules, same input hash).

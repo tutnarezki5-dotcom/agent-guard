@@ -1,0 +1,17 @@
+# One-click deploy on Render's free tier: Dashboard → New → Blueprint → pick this repo.
+# The service runs the simulator (no keys, no real money) at https://<name>.onrender.com
+# Free instances sleep after ~15 min idle; the first request then takes ~30–60 s to wake.
+# This is a SHARED sandbox: every visitor sees and changes the same demo state.
+services:
+  - type: web
+    name: agentguard-demo
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --prod=false
+    startCommand: pnpm start
+    healthCheckPath: /v1/health
+    envVars:
+      - key: EXECUTOR
+        value: sim
+      - key: NODE_VERSION
+        value: "22"

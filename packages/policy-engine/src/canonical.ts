@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { sha256 } from "./sha.ts";
 
 /**
  * Canonical JSON: object keys sorted, no whitespace, `undefined` dropped.
@@ -18,7 +18,10 @@ export function canonicalJson(value: unknown): string {
 }
 
 export function sha256Hex(data: string | Uint8Array): string {
-  return createHash("sha256").update(data).digest("hex");
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  let s = "";
+  for (const b of sha256(bytes)) s += b.toString(16).padStart(2, "0");
+  return s;
 }
 
 export function hashCanonical(value: unknown): string {

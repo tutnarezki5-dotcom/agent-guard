@@ -1,5 +1,4 @@
 import { EventEmitter } from "node:events";
-import { randomUUID } from "node:crypto";
 import type { Decision, DecisionInput, ExecutionRecord, GuardAuthorization, Mandate } from "../../schema/src/index.ts";
 import { parseMandate, parseProposal } from "../../schema/src/index.ts";
 import { evaluate, hashCanonical } from "../../policy-engine/src/index.ts";
@@ -138,7 +137,7 @@ export class Guard {
       authorization = { ...fields, message, signature: this.o.signer.signMessage(message), guard_public_key: this.o.signer.publicKeyNear };
     }
     const decision: Decision = {
-      decision_id: `d_${randomUUID()}`,
+      decision_id: `d_${globalThis.crypto.randomUUID()}`,
       parent_decision_id: parent,
       created_at: input.now,
       ...result,

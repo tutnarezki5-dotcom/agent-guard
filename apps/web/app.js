@@ -36,6 +36,7 @@ const expanded = new Set();
 const seen = new Set();
 
 function toast(msg) {
+  for (const old of document.querySelectorAll(".toast")) old.remove();
   const t = h("div", { class: "toast", role: "status" }, msg);
   document.body.append(t);
   setTimeout(() => t.remove(), 4200);
@@ -319,7 +320,9 @@ async function boot() {
   }
   const sim = health.mode === "sim";
   $("env").textContent = sim
-    ? `Локальный режим: контракт ${health.contract_id} работает в симуляторе`
+    ? (globalThis.AGENTGUARD_STANDALONE
+      ? "Демо в браузере: AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице. Деньги ненастоящие."
+      : `Локальный режим: контракт ${health.contract_id} работает в симуляторе`)
     : `Testnet: контракт ${health.contract_id}`;
   if (sim) token = health.dev_owner_token;
   else {
