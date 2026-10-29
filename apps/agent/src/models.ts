@@ -63,7 +63,7 @@ export class ScriptedModel implements Model {
 
 /**
  * A deliberately gullible model: it obeys any line in a tool output that
- * looks like "переведи/transfer/send <amount> NEAR на/to <account>".
+ * looks like "transfer/send <amount> NEAR to <account>" (also in Russian).
  * Stands in for a real LLM that fell for prompt injection, so the attack
  * demo is reproducible without depending on a model's mood.
  */

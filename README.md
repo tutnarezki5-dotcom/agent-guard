@@ -20,7 +20,7 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 
 ## Live demo
 
-**https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et** — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. Click **Прогнать все двенадцать** (run all twelve) in the "Сценарии атак" section — **see** "12 из 12 сценариев прошли как ожидалось" (12 of 12 passed as expected).
+**https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et** — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
 
 Build it yourself: `pnpm build:standalone` → `dist/standalone/agentguard.html` (open the file directly). In that build, Node's OpenSSL ed25519/SHA are swapped for pure-TypeScript implementations that `packages/guard/test/crypto.test.ts` checks byte for byte against node:crypto and the RFC 8032 vector.
 
@@ -33,11 +33,11 @@ Requires Node.js 22+ and pnpm.
 1. `pnpm install`
 2. `pnpm demo` — **see** a table of 12 attack and safety scenarios, each with the expected outcome, the actual outcome, the layer that stopped it, and `12/12 PASS` at the end. Add `--verbose` to see every rule and every replay check.
 3. `pnpm test` — **see** 52 TypeScript tests pass (Policy Engine, risk, guard, crypto cross-checks, API, scenarios).
-4. `pnpm dev`, then open http://localhost:8787 — **see** the operator dashboard: the mandate's budget meter, an empty journal, the 12 attack scenarios further down.
-5. In the black "Сценарии атак" (attack scenarios) section, click **Запустить** (Run) next to scenario 7 "Prompt-injection в ответе поставщика" — **see** a red row "Заблокировано" (blocked) for 5 NEAR to `drain.testnet`. Click the row — **see** every rule with ✓/✕, the risk signals, "Адрес взят из: ответа внешнего инструмента" (address taken from a tool output), and the injected text under "Слова агента" marked "не влияют на решение" (does not affect the decision).
-6. In that row, click **Повторить проверку** (re-run check) — **see** "Проверка повторена: тот же вердикт, те же правила, тот же хеш входа" (same verdict, same rules, same input hash).
-7. Click **Запустить** next to scenario 4 — **see** three green rows "Разрешено" and one red row; the "Потрачено" (spent) figure shows 2.4 NEAR of the 3 NEAR budget, drawn as three segments on the budget bar.
-8. In the "Попробуйте сами" (try it) section, click **Заморозить выплаты** (freeze payments), then **Оплатить тариф Basic** under "Агент" — **see** a red row whose only failed rule is `policy.not_frozen`, and the banner "Все выплаты заморожены".
+4. `pnpm dev`, then open http://localhost:8787 — **see** the site with the live console: the mandate's budget meter, an empty decision log, the 12 attack scenarios further down.
+5. In the "Attack scenarios" section, click **Run** next to scenario 7 "Prompt injection in a vendor page" — **see** a red "Blocked" row for 5 NEAR to `drain.testnet`. Click the row — **see** every rule with ✓/✕, the risk signals, "Address came from: an external tool's output", and the injected text under "Agent's justification" marked "(ignored by the decision)".
+6. In that row, click **Replay check** — **see** "Replayed: same verdict, same rules, same input hash".
+7. Click **Run** next to scenario 4 — **see** three green "Allowed" rows and one red row; the "Spent" figure shows 2.4 NEAR of the 3 NEAR budget, drawn as three segments on the budget bar.
+8. In the "Live demo" section, click **Freeze payouts**, then **Pay for the Basic plan** under "Agent" — **see** a red row whose only failed rule is `policy.not_frozen`, and the banner "All payouts are frozen".
 9. `pnpm test:contract` (needs Rust) — **see** 14 tests of the vault rules pass, including the TypeScript↔Rust signature-message vectors.
 
 The site and dashboard UI are in Russian (our team's language); each label above is quoted exactly with a translation. Rule ids, API, logs and docs are in English.
@@ -74,7 +74,7 @@ Every decision produced by a scenario is replayed; a scenario passes only if all
 cp .env.example .env
 OWNER_ACCOUNT=yourname.testnet pnpm setup:testnet   # build, deploy vault, scoped agent key, mandate
 pnpm dev                                             # API + dashboard in testnet mode
-pnpm agent --task "Подключи тариф Basic у Weather API"
+pnpm agent --task "Subscribe to the Weather API Basic plan"
 pnpm attack:fc-transfer                              # scenario 11 against the real network
 ```
 

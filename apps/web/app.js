@@ -27,8 +27,8 @@ function near(yocto) {
   return frac ? `${whole}.${frac}` : `${whole}`;
 }
 const pct = (part, total) => (total === 0n ? 0 : Number((BigInt(part) * 10000n) / total) / 100);
-const time = (iso) => new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-const VERDICT = { allow: "Разрешено", warn: "Нужен владелец", block: "Заблокировано" };
+const time = (iso) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const VERDICT = { allow: "Allowed", warn: "Needs owner", block: "Blocked" };
 
 let health = null;
 let token = "";
@@ -67,11 +67,11 @@ function renderMandate(mandates, policy, decisions) {
   const box = $("mandate");
   const m = mandates[0];
   $("freeze").setAttribute("aria-pressed", String(policy.frozen));
-  $("freeze").textContent = policy.frozen ? "Разморозить выплаты" : "Заморозить выплаты";
+  $("freeze").textContent = policy.frozen ? "Unfreeze payouts" : "Freeze payouts";
   $("state").className = `state${policy.frozen ? " frozen" : ""}`;
-  $("state").textContent = policy.frozen ? "выплаты заморожены" : "выплаты открыты";
+  $("state").textContent = policy.frozen ? "payouts frozen" : "payouts open";
   if (!m) {
-    box.replaceChildren(h("p", { class: "empty" }, "Мандатов нет. Создайте мандат через POST /v1/mandates."));
+    box.replaceChildren(h("p", { class: "empty" }, "No mandates yet. Create one with POST /v1/mandates."));
     return;
   }
   const budget = BigInt(m.budget_yocto);
@@ -86,21 +86,21 @@ function renderMandate(mandates, policy, decisions) {
   box.replaceChildren(...[
     h("h3", { class: "mandate-title" }, m.goal),
     h("p", { class: "mandate-meta" },
-      h("span", {}, "мандат ", h("b", {}, m.id)),
-      h("span", {}, "действует до ", h("b", {}, new Date(m.expires_at).toLocaleDateString("ru-RU"))),
-      h("span", {}, "не больше ", h("b", {}, `${near(m.per_tx_max_yocto)} NEAR`), " за платёж"),
-      h("span", {}, "получатели ", h("b", {}, m.allowed_receivers.join(", ")))),
+      h("span", {}, "mandate ", h("b", {}, m.id)),
+      h("span", {}, "valid until ", h("b", {}, new Date(m.expires_at).toLocaleDateString("en-GB"))),
+      h("span", {}, "max ", h("b", {}, `${near(m.per_tx_max_yocto)} NEAR`), " per payment"),
+      h("span", {}, "receivers ", h("b", {}, m.allowed_receivers.join(", ")))),
     h("div", { class: "figures" },
-      figure("Потрачено", near(spent), "NEAR", `из ${near(budget)} NEAR бюджета`),
-      figure("В резерве", near(reserved), "NEAR", "подписи выданы, не исполнены"),
-      figure("Осталось", near(left > 0n ? left : 0n), "NEAR", m.vault_remaining_yocto !== null ? `контракт видит ${near(m.vault_remaining_yocto)} NEAR` : null),
-      figure("Решений", String(mine.length), null, [`разрешено ${allowed}, `, blocked ? h("b", {}, `заблокировано ${blocked}`) : "заблокировано 0"])),
+      figure("Spent", near(spent), "NEAR", `of ${near(budget)} NEAR budget`),
+      figure("Reserved", near(reserved), "NEAR", "signed, not yet executed"),
+      figure("Remaining", near(left > 0n ? left : 0n), "NEAR", m.vault_remaining_yocto !== null ? `vault sees ${near(m.vault_remaining_yocto)} NEAR` : null),
+      figure("Decisions", String(mine.length), null, [`allowed ${allowed}, `, blocked ? h("b", {}, `blocked ${blocked}`) : "blocked 0"])),
     h("div", { class: "budget" },
-      h("div", { class: "track", role: "img", "aria-label": `Потрачено ${near(spent)} из ${near(budget)} NEAR, в резерве ${near(reserved)}` },
-        settled.map((d) => h("span", { class: "seg", style: `width:${pct(d.proposal.amount_yocto, budget)}%`, title: `${near(d.proposal.amount_yocto)} NEAR для ${d.proposal.receiver}` })),
+      h("div", { class: "track", role: "img", "aria-label": `Spent ${near(spent)} of ${near(budget)} NEAR, reserved ${near(reserved)}` },
+        settled.map((d) => h("span", { class: "seg", style: `width:${pct(d.proposal.amount_yocto, budget)}%`, title: `${near(d.proposal.amount_yocto)} NEAR to ${d.proposal.receiver}` })),
         reserved > 0n ? h("span", { class: "res", style: `width:${pct(reserved, budget)}%` }) : null),
       h("div", { class: "scale", "aria-hidden": "true" }, h("span", {}, "0"), h("span", {}, `${near(budget / 2n)}`), h("span", {}, `${near(budget)} NEAR`))),
-    policy.frozen ? h("p", { class: "frozen-banner" }, "Все выплаты заморожены. Ни AgentGuard, ни контракт не пропустят ни одного платежа.") : null,
+    policy.frozen ? h("p", { class: "frozen-banner" }, "All payouts are frozen. Neither AgentGuard nor the vault will let a single payment through.") : null,
   ].filter(Boolean));
 }
 
@@ -113,15 +113,15 @@ function outcomeLine(d) {
   if (d.execution) {
     const ok = d.execution.status === "success";
     const text = ok
-      ? `Переведено, транзакция ${short(d.execution.tx_hash, 14)}`
+      ? `Transferred, tx ${short(d.execution.tx_hash, 14)}`
       : d.execution.status === "pending_onchain_approval"
-        ? "Контракт ждёт одобрения владельца"
-        : `Контракт отказал: ${d.execution.error}`;
+        ? "Vault is waiting for owner approval"
+        : `Vault refused: ${d.execution.error}`;
     return h("span", { class: `outcome ${ok ? "ok" : "bad"}` }, text);
   }
-  if (d.verdict === "allow") return h("span", { class: "outcome" }, d.authorization && d.authorization.expires_at_ms < Date.now() ? "Подпись выдана, не использована, истекла" : "Подпись выдана агенту");
-  if (d.approval === "approved") return h("span", { class: "outcome ok" }, "Владелец одобрил, создано новое решение");
-  if (d.approval === "rejected") return h("span", { class: "outcome bad" }, "Владелец отклонил");
+  if (d.verdict === "allow") return h("span", { class: "outcome" }, d.authorization && d.authorization.expires_at_ms < Date.now() ? "Signature issued, unused, expired" : "Signature issued to the agent");
+  if (d.approval === "approved") return h("span", { class: "outcome ok" }, "Owner approved, new decision created");
+  if (d.approval === "rejected") return h("span", { class: "outcome bad" }, "Owner rejected");
   return null;
 }
 
@@ -136,29 +136,29 @@ async function renderDetail(d, holder) {
       try {
         const r = await api("POST", `/v1/decisions/${encodeURIComponent(d.decision_id)}/replay`);
         result.className = `replay-result ${r.match ? "ok" : "bad"}`;
-        result.textContent = r.match ? "Проверка повторена: тот же вердикт, те же правила, тот же хеш входа" : `Расхождение: вердикт ${r.replayed_verdict}, хеш входа ${r.input_hash_match ? "совпал" : "не совпал"}`;
+        result.textContent = r.match ? "Replayed: same verdict, same rules, same input hash" : `Mismatch: verdict ${r.replayed_verdict}, input hash ${r.input_hash_match ? "matches" : "differs"}`;
       } catch (e) {
         toast(e.message);
       } finally {
         replayBtn.disabled = false;
       }
     },
-  }, "Повторить проверку");
+  }, "Replay check");
 
   const mark = (hit) => (hit.ok ? "✓" : hit.severity === "info" ? "i" : "✕");
   holder.replaceChildren(
     h("table", { class: "trace" },
       h("tbody", {}, full.rule_hits.map((hit) =>
         h("tr", { class: hit.ok ? "" : "failed" },
-          h("td", { class: `mark ${hit.ok ? "ok" : `fail-${hit.severity}`}`, "aria-label": hit.ok ? "выполнено" : "нарушено" }, mark(hit)),
+          h("td", { class: `mark ${hit.ok ? "ok" : `fail-${hit.severity}`}`, "aria-label": hit.ok ? "passed" : "failed" }, mark(hit)),
           h("td", { class: "rule" }, hit.rule),
           h("td", { class: "txt" }, hit.detail))))),
     h("dl", { class: "facts" },
-      h("dt", {}, "Риск получателя"), h("dd", {}, `${full.input.risk.score}/100: ${full.input.risk.signals.filter((s) => s.points !== 0).map((s) => s.detail).join("; ") || "сигналов риска нет"}`),
-      h("dt", {}, "Адрес взят из"), h("dd", {}, { mandate: "мандата", user: "задачи владельца", tool_output: "ответа внешнего инструмента", model: "текста модели" }[full.input.proposal.provenance] ?? full.input.proposal.provenance),
-      h("dt", {}, "Слова агента"), h("dd", {}, full.input.proposal.justification || "нет", " (не влияют на решение)"),
-      h("dt", {}, "Хеш входа"), h("dd", { class: "mono" }, full.input_hash),
-      full.authorization ? [h("dt", {}, "Подписанное сообщение"), h("dd", { class: "mono" }, full.authorization.message)] : null),
+      h("dt", {}, "Receiver risk"), h("dd", {}, `${full.input.risk.score}/100: ${full.input.risk.signals.filter((s) => s.points !== 0).map((s) => s.detail).join("; ") || "no risk signals"}`),
+      h("dt", {}, "Address came from"), h("dd", {}, { mandate: "the mandate", user: "the owner's task", tool_output: "an external tool's output", model: "the model's own text" }[full.input.proposal.provenance] ?? full.input.proposal.provenance),
+      h("dt", {}, "Agent's justification"), h("dd", {}, full.input.proposal.justification || "none", " (ignored by the decision)"),
+      h("dt", {}, "Input hash"), h("dd", { class: "mono" }, full.input_hash),
+      full.authorization ? [h("dt", {}, "Signed message"), h("dd", { class: "mono" }, full.authorization.message)] : null),
     h("div", { class: "detail-actions" }, replayBtn, result),
   );
 }
@@ -184,7 +184,7 @@ function renderJournal(decisions) {
     },
       h("span", { class: "when" }, time(d.created_at)),
       h("span", { class: `verdict ${d.verdict}` }, VERDICT[d.verdict]),
-      h("span", { class: "what" }, h("strong", {}, `${near(d.proposal.amount_yocto)} NEAR`), h("span", { class: "to" }, ` для ${d.proposal.receiver}`)),
+      h("span", { class: "what" }, h("strong", {}, `${near(d.proposal.amount_yocto)} NEAR`), h("span", { class: "to" }, ` to ${d.proposal.receiver}`)),
       h("span", { class: "pips", "aria-hidden": "true" }, d.rule_hits.map((hit) => h("span", { class: pipClass(hit), title: hit.rule }))),
       top ? h("span", { class: "reason" }, top) : null,
       outcomeLine(d));
@@ -205,18 +205,18 @@ async function renderApprovals() {
       ev.target.disabled = true;
       try {
         const r = await api("POST", `/v1/approvals/${encodeURIComponent(d.decision_id)}`, { approve });
-        toast(approve ? (r.result.verdict === "allow" ? "Одобрено, агент получил подпись" : `Одобрено, но правила снова не пропустили: ${r.result.reasons[0]}`) : "Отклонено");
+        toast(approve ? (r.result.verdict === "allow" ? "Approved, the agent got a signature" : `Approved, but the rules still refused: ${r.result.reasons[0]}`) : "Rejected");
       } catch (e) {
         toast(e.message);
       }
       refresh();
     };
     return h("li", { class: "approval" },
-      h("p", { class: "amt" }, `${near(d.proposal.amount_yocto)} NEAR `, h("span", {}, `для ${d.proposal.receiver}`)),
+      h("p", { class: "amt" }, `${near(d.proposal.amount_yocto)} NEAR `, h("span", {}, `to ${d.proposal.receiver}`)),
       h("p", { class: "why" }, d.reasons.join(". ")),
       h("div", { class: "btns" },
-        h("button", { class: "btn btn-approve", type: "button", onclick: decide(true) }, "Одобрить"),
-        h("button", { class: "btn btn-reject", type: "button", onclick: decide(false) }, "Отклонить")));
+        h("button", { class: "btn btn-approve", type: "button", onclick: decide(true) }, "Approve"),
+        h("button", { class: "btn btn-reject", type: "button", onclick: decide(false) }, "Reject")));
   }));
 }
 
@@ -224,18 +224,18 @@ async function renderApprovals() {
 async function renderVault() {
   const v = await api("GET", "/v1/vault");
   if (!v.contract_id) {
-    $("vault").replaceChildren(h("p", { class: "hint" }, v.note || "Состояние контракта читается в эксплорере."));
+    $("vault").replaceChildren(h("p", { class: "hint" }, v.note || "Read the vault state in the explorer."));
     return;
   }
   const m = v.mandates[0];
   $("vault").replaceChildren(
     h("dl", { class: "vault-facts" },
-      h("dt", {}, "Контракт"), h("dd", { class: "mono" }, v.contract_id),
-      h("dt", {}, "Баланс"), h("dd", {}, `${near(v.balance_yocto)} NEAR`),
-      h("dt", {}, "Статус"), h("dd", {}, v.frozen ? "Заморожен" : "Работает"),
-      m ? [h("dt", {}, "Бюджет мандата"), h("dd", {}, `использовано ${near(m.committed)} из ${near(m.budget)} NEAR`)] : null),
-    h("ul", { class: "vault-events", "aria-label": "События контракта" },
-      v.events.slice(-8).reverse().map((e) => h("li", {}, `${new Date(e.at_ms).toLocaleTimeString("ru-RU")}  `, h("span", { class: "ev" }, e.event), e.data.amount ? `  ${near(e.data.amount)} NEAR` : ""))),
+      h("dt", {}, "Contract"), h("dd", { class: "mono" }, v.contract_id),
+      h("dt", {}, "Balance"), h("dd", {}, `${near(v.balance_yocto)} NEAR`),
+      h("dt", {}, "Status"), h("dd", {}, v.frozen ? "Frozen" : "Running"),
+      m ? [h("dt", {}, "Mandate budget"), h("dd", {}, `used ${near(m.committed)} of ${near(m.budget)} NEAR`)] : null),
+    h("ul", { class: "vault-events", "aria-label": "Vault events" },
+      v.events.slice(-8).reverse().map((e) => h("li", {}, `${new Date(e.at_ms).toLocaleTimeString("en-GB")}  `, h("span", { class: "ev" }, e.event), e.data.amount ? `  ${near(e.data.amount)} NEAR` : ""))),
   );
 }
 
@@ -244,7 +244,7 @@ async function renderScenarios() {
   const { scenarios } = await api("GET", "/v1/demo/scenarios");
   $("scenarios").replaceChildren(...scenarios.map((s) => {
     const res = h("p", { class: "res", "aria-live": "polite" });
-    const run = h("button", { class: "run", type: "button", "aria-label": `Запустить сценарий ${s.id}` }, "Запустить");
+    const run = h("button", { class: "run", type: "button", "aria-label": `Run scenario ${s.id}` }, "Run");
     run.addEventListener("click", () => runScenario(s, run, res));
     return h("li", { class: "scenario", title: s.attack }, h("span", { class: "t" }, s.title), run, h("span", { class: "e" }, s.expected), res);
   }));
@@ -253,11 +253,11 @@ async function renderScenarios() {
 async function runScenario(s, btn, res) {
   btn.disabled = true;
   res.className = "res";
-  res.textContent = "Выполняется…";
+  res.textContent = "Running…";
   try {
     const r = await api("POST", `/v1/demo/scenarios/${s.id}/run`);
     res.className = `res ${r.result.passed ? "pass" : "fail"}`;
-    res.textContent = `${r.result.passed ? "Как ожидалось" : "Не совпало"}: ${r.result.actual}. Остановил: ${r.result.stopped_by.join(", ")}`;
+    res.textContent = `${r.result.passed ? "As expected" : "Mismatch"}: ${r.result.actual}. Stopped by: ${r.result.stopped_by.join(", ")}`;
     expanded.clear();
   } catch (e) {
     res.className = "res fail";
@@ -278,7 +278,7 @@ $("run-all").addEventListener("click", async (ev) => {
     const li = items[i];
     if (await runScenario(s, li.querySelector(".run"), li.querySelector(".res"))) pass++;
   }
-  toast(`${pass} из ${scenarios.length} сценариев прошли как ожидалось`);
+  toast(`${pass} of ${scenarios.length} scenarios behaved as expected`);
   ev.target.disabled = false;
 });
 
@@ -287,16 +287,16 @@ for (const btn of document.querySelectorAll("[data-agent]")) {
   btn.addEventListener("click", async () => {
     const log = $("agent-log");
     log.hidden = false;
-    log.textContent = "Агент запущен…";
+    log.textContent = "Agent started…";
     btn.disabled = true;
     try {
       const { run_id } = await api("POST", "/v1/agent/run", { mode: btn.dataset.agent });
       for (;;) {
         await new Promise((r) => setTimeout(r, 400));
         const r = await api("GET", `/v1/agent/runs/${run_id}`);
-        log.textContent = r.log.join("\n") || "Агент думает…";
+        log.textContent = r.log.join("\n") || "Agent is thinking…";
         if (r.status !== "running") {
-          if (r.status === "error") log.textContent += `\nОшибка: ${r.error}`;
+          if (r.status === "error") log.textContent += `\nError: ${r.error}`;
           break;
         }
       }
@@ -313,7 +313,7 @@ $("freeze").addEventListener("click", async () => {
   const frozen = $("freeze").getAttribute("aria-pressed") !== "true";
   try {
     await api("POST", "/v1/freeze", { frozen });
-    toast(frozen ? "Выплаты заморожены" : "Выплаты разморожены");
+    toast(frozen ? "Payouts frozen" : "Payouts unfrozen");
   } catch (e) {
     toast(e.message);
   }
@@ -339,15 +339,15 @@ async function boot() {
   try {
     health = await api("GET", "/v1/health");
   } catch {
-    $("env").textContent = "API недоступен. Запустите pnpm dev.";
+    $("env").textContent = "API unreachable. Start it with pnpm dev.";
     return;
   }
   const sim = health.mode === "sim";
   $("env").textContent = sim
     ? (globalThis.AGENTGUARD_STANDALONE
-      ? "Демо в браузере: AgentGuard, ИИ-агент и симулятор контракта работают прямо на этой странице. Деньги ненастоящие, ничего устанавливать не нужно."
-      : `Локальный режим: контракт ${health.contract_id} работает в симуляторе`)
-    : `Testnet: контракт ${health.contract_id}`;
+      ? "In-browser demo: AgentGuard, the AI agent and the vault simulator all run right on this page. The money is not real and there is nothing to install."
+      : `Local mode: vault ${health.contract_id} runs in the simulator`)
+    : `Testnet: vault ${health.contract_id}`;
   if (sim) token = health.dev_owner_token;
   else {
     $("token-wrap").hidden = false;

@@ -27,8 +27,8 @@ if (asJson) {
   console.log(JSON.stringify(rows, null, 2));
 } else {
   const pad = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s.padEnd(n));
-  console.log(`\nAgentGuard — ${rows.length} сценариев (симулятор контракта, фиксированное время ${new Date(START).toISOString()})\n`);
-  console.log(`${pad("#", 3)} ${pad("Сценарий", 34)} ${pad("Ожидалось", 44)} ${pad("Получилось", 44)} ${pad("Где остановлено", 30)} Итог`);
+  console.log(`\nAgentGuard: ${rows.length} scenarios (vault simulator, fixed time ${new Date(START).toISOString()})\n`);
+  console.log(`${pad("#", 3)} ${pad("Scenario", 34)} ${pad("Expected", 44)} ${pad("Actual", 44)} ${pad("Stopped by", 30)} Result`);
   console.log("-".repeat(165));
   for (const r of rows) {
     console.log(`${pad(String(r.id), 3)} ${pad(r.title, 34)} ${pad(r.expected, 44)} ${pad(r.result.actual, 44)} ${pad(r.result.stopped_by.join(" + "), 30)} ${r.result.passed ? "PASS" : "FAIL"}`);

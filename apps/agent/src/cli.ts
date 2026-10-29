@@ -1,7 +1,7 @@
 /**
  * pnpm agent — run the agent as its own process against a running AgentGuard API.
  *
- *   pnpm agent --task "Подключи тариф Basic у Weather API" [--model llm|scripted|gullible] [--mandate m_api_access_01]
+ *   pnpm agent --task "Subscribe to the Weather API Basic plan" [--model llm|scripted|gullible] [--mandate m_api_access_01]
  *
  * Executor: the real vault on testnet when AGENT_ACCOUNT_ID + AGENT_FC_PRIVATE_KEY
  * + VAULT_CONTRACT_ID are set (needs `pnpm i` for near-api-js). Without them the
@@ -52,7 +52,7 @@ if (env.AGENT_ACCOUNT_ID && env.AGENT_FC_PRIVATE_KEY && env.VAULT_CONTRACT_ID) {
 
 console.log(`agent: model=${model.name} executor=${executor.name} api=${api} mandate=${mandate.id}`);
 const result = await runAgent({
-  task: arg("task", "Подключи тариф Basic у Weather API (https://weather-api.example/pricing).")!,
+  task: arg("task", "Subscribe to the Weather API Basic plan (https://weather-api.example/pricing).")!,
   mandate,
   model,
   guard: client,

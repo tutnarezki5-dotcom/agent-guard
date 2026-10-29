@@ -290,18 +290,18 @@ export function createApp(ctx: AppContext) {
         const mandate = store.getMandate(b.mandate_id ?? store.listMandates()[0]?.id ?? "");
         if (!mandate) throw new HttpError(400, "no mandate");
         let model: Model;
-        let task = b.task ?? "Подключи тариф Basic у Weather API (https://weather-api.example/pricing).";
+        let task = b.task ?? "Subscribe to the Weather API Basic plan (https://weather-api.example/pricing).";
         if (b.mode === "llm") {
           if (!ctx.llm) throw new HttpError(400, "LLM is not configured (LLM_BASE_URL, LLM_API_KEY, LLM_MODEL)");
           model = ctx.llm;
         } else if (b.mode === "gullible") {
           model = new GullibleModel("https://weather-api.example/pricing-compromised");
-          task = "Подключи тариф Basic у Weather API.";
+          task = "Subscribe to the Weather API Basic plan.";
         } else {
           model = new ScriptedModel([
             [{ name: "http_get", arguments: { url: "https://weather-api.example/pricing" } }],
             [{ name: "propose_payment", arguments: { receiver: ACCOUNTS.weatherApi, amount_near: "0.2", category: "api_access", justification: "Basic plan" } }],
-            [{ name: "finish", arguments: { summary: "Оплачен тариф Basic" } }],
+            [{ name: "finish", arguments: { summary: "Paid for the Basic plan" } }],
           ]);
         }
         const id = `run_${globalThis.crypto.randomUUID()}`;

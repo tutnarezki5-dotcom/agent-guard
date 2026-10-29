@@ -48,45 +48,45 @@ export function scoreRisk(params: {
   const sig = (name: string, value: RiskSignal["value"], points: number, detail: string) => signals.push({ name, value, points, detail });
 
   if (!facts.exists) {
-    sig("account_exists", false, 60, "Аккаунт не существует в сети — перевод уйдёт в пустоту или на будущий адрес атакующего");
+    sig("account_exists", false, 60, "Account does not exist: the transfer would go nowhere, or to an address an attacker can claim later");
   } else {
-    sig("account_exists", true, 0, "Аккаунт существует");
+    sig("account_exists", true, 0, "Account exists");
   }
 
   if (facts.created_at === null) {
-    sig("account_age_days", null, 10, "Возраст аккаунта неизвестен");
+    sig("account_age_days", null, 10, "Account age unknown");
   } else {
     const days = Math.floor((now - Date.parse(facts.created_at)) / DAY);
     const points = days < 1 ? 40 : days < 7 ? 25 : days < 30 ? 10 : 0;
-    sig("account_age_days", days, points, `Аккаунту ${days} дн.`);
+    sig("account_age_days", days, points, `Account is ${days} days old`);
   }
 
   if (facts.tx_count === null) {
-    sig("tx_count", null, 5, "История транзакций неизвестна");
+    sig("tx_count", null, 5, "Transaction history unknown");
   } else {
-    sig("tx_count", facts.tx_count, facts.tx_count < 5 ? 15 : 0, `${facts.tx_count} транзакций в истории`);
+    sig("tx_count", facts.tx_count, facts.tx_count < 5 ? 15 : 0, `${facts.tx_count} transactions in history`);
   }
 
   if (facts.is_contract) {
     if (facts.code_changed_at === null) {
-      sig("contract_code_changed_hours", null, 5, "Получатель — контракт, время последнего деплоя неизвестно");
+      sig("contract_code_changed_hours", null, 5, "Receiver is a contract; last deploy time unknown");
     } else {
       const hours = Math.floor((now - Date.parse(facts.code_changed_at)) / 3_600_000);
-      sig("contract_code_changed_hours", hours, hours < 24 ? 30 : 0, `Код контракта обновлён ${hours} ч назад`);
+      sig("contract_code_changed_hours", hours, hours < 24 ? 30 : 0, `Contract code changed ${hours} h ago`);
     }
   } else {
-    sig("is_contract", false, 0, "Получатель — обычный аккаунт, не контракт");
+    sig("is_contract", false, 0, "Receiver is a plain account, not a contract");
   }
 
   sig(
     "prior_payments",
     prior_payments,
     prior_payments > 0 ? -15 : 0,
-    prior_payments > 0 ? `${prior_payments} успешных платежей этому получателю раньше` : "Раньше платежей этому получателю не было",
+    prior_payments > 0 ? `${prior_payments} earlier successful payments to this receiver` : "No earlier payments to this receiver",
   );
 
   if (blocklist) {
-    sig("blocklisted", true, 100, `В блоклисте: ${blocklist.reason} (сообщил ${blocklist.reported_by})`);
+    sig("blocklisted", true, 100, `Blocklisted: ${blocklist.reason} (reported by ${blocklist.reported_by})`);
   }
 
   const raw = signals.reduce((s, x) => s + x.points, 0);

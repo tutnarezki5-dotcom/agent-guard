@@ -7,6 +7,10 @@
  *   ed25519.ts → ed25519.portable.ts, sha.ts → sha.portable.ts,
  *   node:events / node:fs / node:path → apps/standalone/src/node-shims.ts
  *
+ * The WebGL planet (apps/web/planet.js) is not bundled: it imports three.js
+ * r0.143 from a CDN through an import map, exactly like the dev page, so it is
+ * inlined as its own module script next to the import map.
+ *
  * Output: dist/standalone/agentguard.html (also a fragment without
  * <html>/<head>/<body> wrappers at dist/standalone/agentguard.fragment.html
  * for hosts that add their own document skeleton).
@@ -46,19 +50,22 @@ const js = result.outputFiles[0]!.text.replace(/<\/script/gi, "<\\/script");
 const html = readFileSync(resolve(root, "apps/web/index.html"), "utf8");
 const css = readFileSync(resolve(root, "apps/web/style.css"), "utf8");
 const fonts = /<link href="https:\/\/fonts\.googleapis\.com[^>]+>/.exec(html)?.[0] ?? "";
+const importmap = /<script type="importmap">[\s\S]*?<\/script>/.exec(html)?.[0];
 const body = /<body>([\s\S]*?)<script/.exec(html)?.[1];
-if (!body) throw new Error("could not find dashboard body markup");
+if (!body || !importmap) throw new Error("could not find page body markup or import map");
+const planet = readFileSync(resolve(root, "apps/web/planet.js"), "utf8").replace(/<\/script/gi, "<\\/script");
 
 const head = `<title>AgentGuard</title>
 <meta name="description" content="AgentGuard: a policy firewall for AI agents that spend money on NEAR. Interactive demo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${fonts}
-<style>${css}</style>`;
-const script = `<script type="module">${js}</script>`;
+<style>${css}</style>
+${importmap}`;
+const script = `<script type="module">${js}</script>\n<script type="module">${planet}</script>`;
 
 const out = resolve(root, "dist/standalone");
 mkdirSync(out, { recursive: true });
 writeFileSync(resolve(out, "agentguard.fragment.html"), `${head}\n${body.trim()}\n${script}\n`);
-writeFileSync(resolve(out, "agentguard.html"), `<!doctype html>\n<html lang="ru">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${head}\n</head>\n<body>\n${body.trim()}\n${script}\n</body>\n</html>\n`);
+writeFileSync(resolve(out, "agentguard.html"), `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n${head}\n</head>\n<body>\n${body.trim()}\n${script}\n</body>\n</html>\n`);
 console.log(`dist/standalone/agentguard.html  ${(Buffer.byteLength(js) / 1024).toFixed(0)} KB of JS`);
