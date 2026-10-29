@@ -1,0 +1,17 @@
+[package]
+name = "agentguard-vault-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Pure rule logic of the AgentGuard vault. No dependencies unless the `near` feature is on."
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+# Adds Borsh (de)serialization through near-sdk so the contract can store the state directly.
+near = ["dep:near-sdk"]
+
+[dependencies]
+near-sdk = { version = "5", optional = true, default-features = false }
