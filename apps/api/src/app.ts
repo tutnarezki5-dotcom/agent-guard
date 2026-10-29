@@ -80,6 +80,7 @@ function summary(d: Decision) {
     created_at: d.created_at,
     verdict: d.verdict,
     reasons: d.reasons,
+    rule_hits: d.rule_hits.map((h) => ({ rule: h.rule, ok: h.ok, severity: h.severity })),
     approval: d.approval,
     proposal: d.input.proposal,
     risk: { score: d.input.risk.score, level: d.input.risk.level },

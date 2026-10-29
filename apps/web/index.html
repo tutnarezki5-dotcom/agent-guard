@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>AgentGuard</h1>
+      <p class="sub" id="env">Подключение…</p>
+    </div>
+    <div class="top-actions">
+      <label class="token" id="token-wrap" hidden>
+        <span>Ключ владельца</span>
+        <input id="token" type="password" autocomplete="off">
+      </label>
+      <button id="freeze" class="btn btn-freeze" type="button" aria-pressed="false">Заморозить выплаты</button>
+    </div>
+  </header>
+
+  <section class="mandate" id="mandate" aria-live="polite"></section>
+
+  <main class="grid">
+    <section class="journal" aria-labelledby="journal-h">
+      <div class="section-head">
+        <h2 id="journal-h">Журнал решений</h2>
+        <p class="hint">Каждая метка в строке — одно правило. Красная остановила платёж, жёлтая требует владельца. Нажмите на строку, чтобы увидеть проверку целиком.</p>
+      </div>
+      <ol class="rows" id="rows"></ol>
+      <p class="empty" id="rows-empty">Решений пока нет. Запустите агента или один из сценариев справа.</p>
+    </section>
+
+    <aside class="side">
+      <section aria-labelledby="appr-h">
+        <h2 id="appr-h">Ждут вашего решения</h2>
+        <ul class="approvals" id="approvals"></ul>
+        <p class="empty" id="approvals-empty">Нет операций, ожидающих одобрения.</p>
+      </section>
+
+      <section aria-labelledby="agent-h">
+        <h2 id="agent-h">Агент</h2>
+        <div class="agent-buttons">
+          <button class="btn" type="button" data-agent="scripted">Оплатить тариф Basic</button>
+          <button class="btn" type="button" data-agent="gullible">Агент читает страницу с инъекцией</button>
+          <button class="btn" type="button" data-agent="llm" id="agent-llm" hidden>Запустить LLM-агента</button>
+        </div>
+        <pre class="agent-log" id="agent-log" hidden></pre>
+      </section>
+
+      <section aria-labelledby="sc-h" id="scenarios-wrap">
+        <h2 id="sc-h">Сценарии проверки</h2>
+        <p class="hint">Каждый запуск начинается с чистого состояния, журнал показывает только его.</p>
+        <ol class="scenarios" id="scenarios"></ol>
+        <button class="btn btn-quiet" type="button" id="run-all">Прогнать все двенадцать</button>
+      </section>
+
+      <section aria-labelledby="vault-h">
+        <h2 id="vault-h">Хранилище на цепочке</h2>
+        <div id="vault"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
