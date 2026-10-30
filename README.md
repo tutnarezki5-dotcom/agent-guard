@@ -20,11 +20,11 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 
 ## Try it in the browser
 
-**https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et** — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
+**https://tutnarezki5-dotcom.github.io/agentguard/** (mirror: https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et) — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
 
 Build it yourself: `pnpm build:standalone` → `dist/standalone/agentguard.html` (open the file directly). In that build, Node's OpenSSL ed25519/SHA are swapped for pure-TypeScript implementations that `packages/guard/test/crypto.test.ts` checks byte for byte against node:crypto and the RFC 8032 vector.
 
-The same page is published from this repository by GitHub Pages (`.github/workflows/pages.yml`). To run the Node server publicly instead, `render.yaml` is a Render blueprint for the simulator (we have not deployed it ourselves).
+The page is published from this repository by GitHub Pages (`.github/workflows/pages.yml`). To run the Node server publicly instead, `render.yaml` is a Render blueprint for the simulator (we have not deployed it ourselves).
 
 ## Try it in 2 minutes (no blockchain, no keys)
 
