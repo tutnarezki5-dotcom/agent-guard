@@ -23,7 +23,8 @@
     "vectors": "tsx scripts/gen-test-vectors.ts",
     "check": "pnpm typecheck && pnpm test && pnpm demo && pnpm test:contract",
     "build:standalone": "tsx scripts/build-standalone.ts",
-    "start": "tsx apps/api/src/server.ts"
+    "start": "tsx apps/api/src/server.ts",
+    "testnet:e2e": "bash scripts/testnet-e2e.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

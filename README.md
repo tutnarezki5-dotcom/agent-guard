@@ -70,6 +70,14 @@ Every decision produced by a scenario is replayed; a scenario passes only if all
 
 ## Testnet
 
+Everything in one command (macOS or Linux, Node 22+; installs Rust, cargo-near and the near CLI if missing, gets free testnet NEAR from the faucet, deploys, runs an honest payment and a prompt-injection attack against the real network, prints explorer links):
+
+```bash
+bash scripts/testnet-e2e.sh
+```
+
+Or step by step:
+
 ```bash
 cp .env.example .env
 OWNER_ACCOUNT=yourname.testnet pnpm setup:testnet   # build, deploy vault, scoped agent key, mandate

@@ -1,0 +1,5 @@
+[toolchain]
+# A version known to produce wasm the NEAR runtime accepts with near-sdk 5.
+channel = "1.86.0"
+components = ["rustfmt"]
+targets = ["wasm32-unknown-unknown"]
