@@ -1,16 +1,22 @@
 /**
  * NEAR testnet integration (near-api-js).
  *
- * NOT VERIFIED IN THE SANDBOX THIS WAS WRITTEN IN (no npm access there).
+ * Checked against near-api-js 6.5.1 on testnet.
  * Written against the near-api-js v6 API: `Account`, `JsonRpcProvider`,
  * `KeyPairSigner`, `account.callFunction(...)`. After `pnpm i`, run
  * `pnpm --filter @agentguard/near typecheck` and fix any drift; the NEAR
  * agent skill (`npx skills add near/agent-skills --skill near-api-js`)
  * has the current signatures.
  */
-import { Account, JsonRpcProvider, KeyPairSigner } from "near-api-js";
+import { Account, KeyPairSigner, providers } from "near-api-js";
 import type { GuardAuthorization } from "../../schema/src/index.ts";
 import type { ExecutionResult, Executor } from "../../sdk/src/index.ts";
+
+// near-api-js 6.x exports the RPC provider under `providers`, not at the top level.
+const { JsonRpcProvider } = providers;
+
+// Re-exported for scripts outside this package (pnpm keeps near-api-js here).
+export { Account, KeyPairSigner, JsonRpcProvider };
 
 export const TESTNET_RPC = "https://rpc.testnet.near.org";
 export const explorerTx = (hash: string) => `https://testnet.nearblocks.io/txns/${hash}`;

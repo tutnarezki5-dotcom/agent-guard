@@ -6,9 +6,9 @@
  * Prints each error. Needs AGENT_ACCOUNT_ID, AGENT_FC_PRIVATE_KEY,
  * VAULT_CONTRACT_ID in .env and `pnpm i`.
  *
- * Written against near-api-js v6 — verify method names after installing.
+ * near-api-js lives in packages/near (pnpm does not hoist it to the root).
  */
-import { Account, JsonRpcProvider, KeyPairSigner } from "near-api-js";
+import { Account, KeyPairSigner, JsonRpcProvider } from "../packages/near/src/index.ts";
 
 const env = process.env;
 for (const k of ["AGENT_ACCOUNT_ID", "AGENT_FC_PRIVATE_KEY", "VAULT_CONTRACT_ID"]) if (!env[k]) throw new Error(`set ${k}`);
