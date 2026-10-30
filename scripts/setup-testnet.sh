@@ -5,7 +5,7 @@
 #
 # Needs: near CLI (near-cli-rs), cargo-near, Node 22 + pnpm (after `pnpm i`).
 # The owner account must exist and be in your near CLI keychain
-# (create one: `near account create-account sponsor-by-faucet-service yourname.testnet autogenerate-new-keypair save-to-legacy-keychain network-config testnet create`).
+# (create one: `near account create-account sponsor-by-faucet-service yourname.testnet autogenerate-new-keypair --signature-scheme ed25519 save-to-legacy-keychain network-config testnet create`).
 #
 # NOTE: near CLI subcommand syntax changes between versions. Every command
 # below is printed before it runs; if one fails, check `near <cmd> --help`
@@ -43,11 +43,11 @@ GUARD_PUBLIC_KEY="$(grep '^GUARD_PUBLIC_KEY=' .env | cut -d= -f2-)"
 
 if step 3; then
   echo "== 3. Create vault and agent sub-accounts (funded by the owner)"
-  run near account create-account fund-myself "$VAULT" '4 NEAR' autogenerate-new-keypair save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
-  run near account create-account fund-myself "$AGENT" '0.5 NEAR' autogenerate-new-keypair save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
+  run near account create-account fund-myself "$VAULT" '4 NEAR' autogenerate-new-keypair --signature-scheme ed25519 save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
+  run near account create-account fund-myself "$AGENT" '0.5 NEAR' autogenerate-new-keypair --signature-scheme ed25519 save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
   # A receiver we control, so a real payment has somewhere to land.
   if [ "$RECEIVER" = "weather.${OWNER_ACCOUNT}" ]; then
-    run near account create-account fund-myself "$RECEIVER" '0.1 NEAR' autogenerate-new-keypair save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
+    run near account create-account fund-myself "$RECEIVER" '0.1 NEAR' autogenerate-new-keypair --signature-scheme ed25519 save-to-legacy-keychain sign-as "$OWNER_ACCOUNT" network-config "$NET" sign-with-legacy-keychain send
   fi
 fi
 

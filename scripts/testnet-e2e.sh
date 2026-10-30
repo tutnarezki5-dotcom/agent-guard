@@ -59,7 +59,7 @@ OWNER_ACCOUNT="${OWNER_ACCOUNT:-$(grep '^OWNER_ACCOUNT_ID=' .env | cut -d= -f2- 
 if [ -z "$OWNER_ACCOUNT" ]; then
   OWNER_ACCOUNT="agentguard-$(node -e 'console.log(require("crypto").randomBytes(4).toString("hex"))').testnet"
   echo "Creating $OWNER_ACCOUNT from the testnet faucet…"
-  near account create-account sponsor-by-faucet-service "$OWNER_ACCOUNT" autogenerate-new-keypair save-to-legacy-keychain network-config testnet create
+  near account create-account sponsor-by-faucet-service "$OWNER_ACCOUNT" autogenerate-new-keypair --signature-scheme ed25519 save-to-legacy-keychain network-config testnet create
   echo "OWNER_ACCOUNT_ID=$OWNER_ACCOUNT" >> .env
   sleep 3
 fi

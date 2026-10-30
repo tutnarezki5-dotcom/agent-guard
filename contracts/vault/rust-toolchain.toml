@@ -1,5 +1,4 @@
 [toolchain]
-# A version known to produce wasm the NEAR runtime accepts with near-sdk 5.
-channel = "1.86.0"
-components = ["rustfmt"]
+# near-sdk 5.30 needs rustc >= 1.95; use the current stable with the wasm target.
+channel = "stable"
 targets = ["wasm32-unknown-unknown"]
