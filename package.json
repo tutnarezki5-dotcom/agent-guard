@@ -31,5 +31,10 @@
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "esbuild": "^0.25.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

@@ -24,11 +24,11 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 
 Build it yourself: `pnpm build:standalone` → `dist/standalone/agentguard.html` (open the file directly). In that build, Node's OpenSSL ed25519/SHA are swapped for pure-TypeScript implementations that `packages/guard/test/crypto.test.ts` checks byte for byte against node:crypto and the RFC 8032 vector.
 
-Self-hosted server on a free tier: `render.yaml` deploys the simulator to Render (Dashboard → New → Blueprint → this repo) at `https://<name>.onrender.com`. It is a shared sandbox: all visitors see the same state.
+The same page is published from this repository by GitHub Pages (`.github/workflows/pages.yml`). To run the Node server publicly instead, `render.yaml` is a Render blueprint for the simulator (we have not deployed it ourselves).
 
 ## Try it in 2 minutes (no blockchain, no keys)
 
-Requires Node.js 22+ and pnpm.
+Requires Node.js 22+ and pnpm (if `pnpm` is missing: `corepack enable`, or use `npx pnpm@10` in place of `pnpm`).
 
 1. `pnpm install`
 2. `pnpm demo` — **see** a table of 12 attack and safety scenarios, each with the expected outcome, the actual outcome, the layer that stopped it, and `12/12 PASS` at the end. Add `--verbose` to see every rule and every replay check.
@@ -78,7 +78,7 @@ bash scripts/testnet-e2e.sh
 
 ### Testnet run (30 Oct 2026)
 
-`bash scripts/testnet-e2e.sh` on a clean machine, against NEAR testnet:
+`bash scripts/testnet-e2e.sh` on a MacBook (macOS, Node 24), against NEAR testnet:
 
 | Step | Result |
 | --- | --- |
@@ -97,14 +97,19 @@ pnpm agent --task "Subscribe to the Weather API Basic plan"
 pnpm attack:fc-transfer                              # scenario 11 against the real network
 ```
 
-After setup, create the same mandate in AgentGuard: `POST /v1/mandates` with the owner token (example body in [docs/architecture.md](docs/architecture.md) and `attacks/world.ts`).
+After setup, create the same mandate in AgentGuard (`scripts/testnet-e2e.sh` does this for you; `OWNER_TOKEN` and the receiver are in `.env` / the setup output):
+
+```bash
+curl -X POST http://localhost:8787/v1/mandates -H "authorization: Bearer $OWNER_TOKEN" -H 'content-type: application/json' \
+  -d '{"id":"m_api_access_01","goal":"Buy weather API access","budget_yocto":"3000000000000000000000000","per_tx_max_yocto":"1000000000000000000000000","approval_threshold_yocto":"900000000000000000000000","expires_at":"2026-12-01T00:00:00Z","allowed_categories":["api_access"],"allowed_receivers":["weather.yourname.testnet"]}'
+```
 
 ## Project status (honest)
 
 | Part | Status |
 | --- | --- |
-| Policy Engine, risk scoring, signer, guard, replay | Done, 28 unit tests |
-| HTTP API, dashboard, agent loop, 12 scenarios | Done, tested in simulator mode |
+| Policy Engine, risk scoring, signer, guard, replay | Done, 31 unit tests (Policy Engine 15, risk 5, guard + crypto 11) |
+| HTTP API, dashboard, agent loop, 12 scenarios | Done: 9 API tests, 12 scenario tests; also run on testnet (above) |
 | Vault rules (`contracts/vault-core`) | Done, 14 cargo tests |
 | Vault near-sdk wrapper (`contracts/vault`) | Built with `cargo near build` (near-sdk 5.30, Rust stable) and **deployed on testnet** |
 | Testnet executor and setup script (`packages/near`, `scripts/`) | **Run end to end on testnet** with near-api-js 6.5.1 and near-cli-rs 0.30.1 (`bash scripts/testnet-e2e.sh`) |
