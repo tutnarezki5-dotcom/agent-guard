@@ -18,7 +18,7 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 - **Replayable decisions.** Every decision stores its full input snapshot and SHA-256. `replay` re-runs the engine and must reproduce the verdict, every rule result and the hash.
 - **Human in the loop.** Payments above the threshold or to medium-risk receivers wait for the owner. One switch freezes AgentGuard and the vault together.
 
-## Live demo
+## Try it in the browser
 
 **https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et** — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
 
@@ -37,10 +37,10 @@ Requires Node.js 22+ and pnpm.
 5. In the "Attack scenarios" section, click **Run** next to scenario 7 "Prompt injection in a vendor page" — **see** a red "Blocked" row for 5 NEAR to `drain.testnet`. Click the row — **see** every rule with ✓/✕, the risk signals, "Address came from: an external tool's output", and the injected text under "Agent's justification" marked "(ignored by the decision)".
 6. In that row, click **Replay check** — **see** "Replayed: same verdict, same rules, same input hash".
 7. Click **Run** next to scenario 4 — **see** three green "Allowed" rows and one red row; the "Spent" figure shows 2.4 NEAR of the 3 NEAR budget, drawn as three segments on the budget bar.
-8. In the "Live demo" section, click **Freeze payouts**, then **Pay for the Basic plan** under "Agent" — **see** a red row whose only failed rule is `policy.not_frozen`, and the banner "All payouts are frozen".
+8. In the "Console" section, click **Freeze payouts**, then **Pay for the Basic plan** under "Agent" — **see** a red row whose only failed rule is `policy.not_frozen`, and the banner "All payouts are frozen".
 9. `pnpm test:contract` (needs Rust) — **see** 14 tests of the vault rules pass, including the TypeScript↔Rust signature-message vectors.
 
-The site and dashboard UI are in Russian (our team's language); each label above is quoted exactly with a translation. Rule ids, API, logs and docs are in English.
+Everything (site, dashboard, rule ids, API, logs, docs) is in English.
 
 ## The 12 scenarios
 
@@ -135,6 +135,6 @@ API reference: `apps/api/src/app.ts` (routes are grouped and commented). Main en
 ## Hackathon disclosure
 
 - All code in this repository was written during the NEAR HACKATHON window (from the 19 Oct 2026 announcement). There is no pre-existing baseline.
-- Runtime dependencies: Node.js standard library only for the core; `near-api-js` for testnet; `near-sdk` for the contract. Dev: TypeScript, tsx. Fonts: Onest and JetBrains Mono (Google Fonts).
+- Runtime dependencies: Node.js standard library only for the core; `near-api-js` for testnet; `near-sdk` for the contract. Dev: TypeScript, tsx. Fonts: Inter and JetBrains Mono (Google Fonts). Site background: three.js r0.143 from unpkg (the page works without it).
 - Parts of the code were written with AI assistance (Claude) and reviewed by the team.
 - License: MIT.

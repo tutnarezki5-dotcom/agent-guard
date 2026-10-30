@@ -135,6 +135,7 @@ html.lenis,html.lenis body{height:auto}
 
 /* ---------------- 4 · Live demo console ---------------- */
 .section-head #env{font-size:16px}
+.section-head #env a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .console{position:relative;padding:clamp(14px,2.4vw,26px);border-radius:var(--radius-lg);background:var(--panel);border:1px solid var(--line-strong);box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:grid;gap:16px}
 .console h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
 .console-bar{display:flex;align-items:center;justify-content:space-between;gap:12px 18px;flex-wrap:wrap}

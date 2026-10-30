@@ -56,7 +56,7 @@ if (!body || !importmap) throw new Error("could not find page body markup or imp
 const planet = readFileSync(resolve(root, "apps/web/planet.js"), "utf8").replace(/<\/script/gi, "<\\/script");
 
 const head = `<title>AgentGuard</title>
-<meta name="description" content="AgentGuard: a policy firewall for AI agents that spend money on NEAR. Interactive demo.">
+<meta name="description" content="AgentGuard: a policy firewall for AI agents that spend money on NEAR. Runs in your browser; the same code runs on NEAR testnet.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${fonts}

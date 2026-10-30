@@ -343,11 +343,18 @@ async function boot() {
     return;
   }
   const sim = health.mode === "sim";
-  $("env").textContent = sim
-    ? (globalThis.AGENTGUARD_STANDALONE
-      ? "In-browser demo: AgentGuard, the AI agent and the vault simulator all run right on this page. The money is not real and there is nothing to install."
-      : `Local mode: vault ${health.contract_id} runs in the simulator`)
-    : `Testnet: vault ${health.contract_id}`;
+  const PROOF_TX = "https://testnet.nearblocks.io/txns/7Uv2Tt5kfnNYtn5maooWEz5qGpHdE7dyMUQUyGHETH3e";
+  if (sim) {
+    $("env").replaceChildren(
+      globalThis.AGENTGUARD_STANDALONE
+        ? "Sandbox mode: AgentGuard, the AI agent and a vault simulator run right in this page, nothing to install. The same code pays on NEAR testnet: "
+        : `Local sandbox: vault ${health.contract_id} runs in the simulator. The same code pays on NEAR testnet: `,
+      h("a", { href: PROOF_TX, target: "_blank", rel: "noopener" }, "see a real payment"),
+      ".",
+    );
+  } else {
+    $("env").replaceChildren("NEAR testnet: vault ", h("a", { href: `https://testnet.nearblocks.io/address/${encodeURIComponent(health.contract_id)}`, target: "_blank", rel: "noopener" }, health.contract_id), ". Every allowed payment is a real testnet transaction.");
+  }
   if (sim) token = health.dev_owner_token;
   else {
     $("token-wrap").hidden = false;
