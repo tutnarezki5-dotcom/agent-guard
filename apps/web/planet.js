@@ -176,7 +176,9 @@ function buildEarth(W = 1024, H = 512) {
         r = Lerp(Lerp(52, 150, dry), 168, e * 0.6);
         g = Lerp(Lerp(92, 128, dry), 150, e * 0.5);
         b = Lerp(Lerp(44, 82, dry), 120, e * 0.5);
-        if (lat > 0.82) { r = g = 235; b = 242; }
+        // Soft, noisy polar ice instead of a flat white cap.
+        const iceL = clamp((lat - 0.88 + 0.05 * detail(dx * 6, dy * 6, dz * 6)) * 12, 0, 1);
+        r = Lerp(r, 200, iceL); g = Lerp(g, 212, iceL); b = Lerp(b, 226, iceL);
         // City lights: sparse warm clusters away from the poles.
         const c = detail(dx * 40, dy * 40, dz * 40) + 0.6 * detail(dx * 90 + 5, dy * 90, dz * 90);
         const city = lat < 0.7 && c > 0.62 ? Math.min(1, (c - 0.62) * 3) : 0;
@@ -189,7 +191,8 @@ function buildEarth(W = 1024, H = 512) {
         r = Lerp(26, 6, d);
         g = Lerp(86, 32, d);
         b = Lerp(138, 82, d);
-        if (lat > 0.9) { r = g = 225; b = 236; }
+        const iceO = clamp((lat - 0.93 + 0.04 * detail(dx * 6, dy * 6, dz * 6)) * 14, 0, 1);
+        r = Lerp(r, 190, iceO); g = Lerp(g, 204, iceO); b = Lerp(b, 222, iceO);
         nimg.data[i + 3] = 255;
       }
       // Darker albedo: the spec's ambient light (1.8) is tuned for a
