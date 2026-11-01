@@ -1,0 +1,16 @@
+# Default gitleaks rules, plus an allowlist for deterministic TEST keys:
+# the cross-language signature vectors (seed 0x07 x 32) and keys generated
+# inside tests. Real keys live only in .env, which git ignores.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Deterministic test vectors and test fixtures"
+paths = [
+  '''contracts/test-vectors\.json''',
+  '''contracts/vault-core/src/tests\.rs''',
+  '''(packages|apps)/[^/]+/test/.*''',
+  '''attacks/.*''',
+  '''pnpm-lock\.yaml''',
+  '''Cargo\.lock''',
+]
