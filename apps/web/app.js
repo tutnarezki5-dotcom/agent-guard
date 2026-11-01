@@ -34,6 +34,8 @@ let health = null;
 let token = "";
 const expanded = new Set();
 const seen = new Set();
+// Replay results survive the journal re-rendering on every refresh.
+const replays = new Map();
 
 function toast(msg) {
   for (const old of document.querySelectorAll(".toast")) old.remove();
@@ -127,7 +129,9 @@ function outcomeLine(d) {
 
 async function renderDetail(d, holder) {
   const full = await api("GET", `/v1/decisions/${encodeURIComponent(d.decision_id)}`);
-  const result = h("span", { class: "replay-result", "aria-live": "polite" });
+  const result = h("span", { class: "replay-result", "aria-live": "polite", "data-replay": d.decision_id });
+  const prev = replays.get(d.decision_id);
+  if (prev) { result.className = prev.cls; result.textContent = prev.text; }
   const replayBtn = h("button", {
     class: "btn",
     type: "button",
@@ -137,6 +141,8 @@ async function renderDetail(d, holder) {
         const r = await api("POST", `/v1/decisions/${encodeURIComponent(d.decision_id)}/replay`);
         result.className = `replay-result ${r.match ? "ok" : "bad"}`;
         result.textContent = r.match ? "Replayed: same verdict, same rules, same input hash" : `Mismatch: verdict ${r.replayed_verdict}, input hash ${r.input_hash_match ? "matches" : "differs"}`;
+        replays.set(d.decision_id, { cls: result.className, text: result.textContent });
+        for (const el of document.querySelectorAll(`[data-replay="${CSS.escape(d.decision_id)}"]`)) { el.className = result.className; el.textContent = result.textContent; }
       } catch (e) {
         toast(e.message);
       } finally {
