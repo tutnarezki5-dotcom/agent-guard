@@ -10,3 +10,6 @@ target/
 .DS_Store
 *.log
 keys/
+
+# video sources and renders (not part of the product)
+video/
