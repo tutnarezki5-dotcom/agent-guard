@@ -20,7 +20,7 @@ An agent that can pay for APIs, compute or other agents is one prompt injection 
 
 ## Try it in the browser
 
-**https://tutnarezki5-dotcom.github.io/agentguard/** (mirror: https://claude.ai/artifact/XngHp4X5FdqSk7SpriY5et) — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
+**https://tutnarezki5-dotcom.github.io/agentguard/ — the whole system (AgentGuard API handler, Policy Engine, Risk Monitor, vault simulator, agent, dashboard) compiled into one page that runs in your browser. No server, no wallet, no real money. The background planet (three.js r0.143 from unpkg) is drawn with procedurally generated textures. Click **Run all twelve** in the "Attack scenarios" section — **see** "12 of 12 scenarios behaved as expected".
 
 Build it yourself: `pnpm build:standalone` → `dist/standalone/agentguard.html` (open the file directly). In that build, Node's OpenSSL ed25519/SHA are swapped for pure-TypeScript implementations that `packages/guard/test/crypto.test.ts` checks byte for byte against node:crypto and the RFC 8032 vector.
 
@@ -141,5 +141,4 @@ API reference: `apps/api/src/app.ts` (routes are grouped and commented). Main en
 
 - All code in this repository was written during the NEAR HACKATHON window (from the 19 Oct 2026 announcement). There is no pre-existing baseline.
 - Runtime dependencies: Node.js standard library only for the core; `near-api-js` for testnet; `near-sdk` for the contract. Dev: TypeScript, tsx. Fonts: Inter and JetBrains Mono (Google Fonts). Site background: three.js r0.143 from unpkg (the page works without it).
-- Parts of the code were written with AI assistance (Claude) and reviewed by the team.
 - License: MIT.
